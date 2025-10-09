@@ -10,9 +10,10 @@ app.use(cors());
 app.use(express.static('public'));
 
 const vapidKeys = {
-  publicKey: 'SUA_PUBLIC_KEY_AQUI',
-  privateKey: 'SUA_PRIVATE_KEY_AQUI'
+  publicKey: process.env.PUBLIC_VAPID_KEY,
+  privateKey: process.env.PRIVATE_VAPID_KEY
 };
+
 
 webpush.setVapidDetails('mailto:seuemail@exemplo.com', vapidKeys.publicKey, vapidKeys.privateKey);
 
@@ -43,3 +44,4 @@ app.post('/send', async (req, res) => {
 });
 
 app.listen(10000, () => console.log('Servidor ativo na porta 10000'));
+
