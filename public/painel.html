@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head><meta charset="UTF-8"><title>Painel de Notificações</title></head>
+<body style="max-width:500px;margin:auto;text-align:center;">
+  <h2>Enviar Notificação</h2>
+  <input id="title" placeholder="Título" style="width:100%;margin:5px;"><br>
+  <textarea id="body" placeholder="Mensagem" style="width:100%;height:60px;margin:5px;"></textarea><br>
+  <input id="icon" placeholder="URL da imagem" style="width:100%;margin:5px;"><br>
+  <input id="url" placeholder="Link ao clicar" style="width:100%;margin:5px;"><br>
+  <button onclick="sendNotification()">Enviar</button>
+  <script>
+    async function sendNotification() {
+      const payload = {
+        title: document.getElementById('title').value,
+        body: document.getElementById('body').value,
+        icon: document.getElementById('icon').value,
+        url: document.getElementById('url').value
+      };
+      await fetch('/send', {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
+      alert('✅ Notificação enviada!');
+    }
+  </script>
+</body>
+</html>
