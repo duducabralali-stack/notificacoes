@@ -9,39 +9,74 @@ app.use(bodyParser.json());
 app.use(cors());
 app.use(express.static('public'));
 
+// ===============================
+// 🔐 CHAVES VAPID (AS MESMAS QUE ESTÃO NO RENDER)
+// ===============================
 const vapidKeys = {
-  publicKey: process.env.PUBLIC_VAPID_KEY,
-  privateKey: process.env.PRIVATE_VAPID_KEY
+  publicKey: 'BIrg7lacz4LQXJlCh9jIKOmwsPwcbIXbKI9eWrFidezQEnSOMTE9jxpL-cE43dpLTFjP1wMXDJUDxCjy95ZzpNA',
+  privateKey: 'LsHEzQxFlidjqWFaaq8h_gIeUZ2oK4EXV8uW6m3SgQ0' // sua PRIVATE_KEY do Render
 };
 
+webpush.setVapidDetails(
+  'mailto:seuemail@exemplo.com',
+  vapidKeys.publicKey,
+  vapidKeys.privateKey
+);
 
-webpush.setVapidDetails('mailto:seuemail@exemplo.com', vapidKeys.publicKey, vapidKeys.privateKey);
-
+// ===============================
+// 🧠 Funções auxiliares
+// ===============================
 const getSubs = () => {
-  try { return JSON.parse(fs.readFileSync('db.json', 'utf8')); }
-  catch { return []; }
+  try {
+    return JSON.parse(fs.readFileSync('db.json', 'utf8'));
+  } catch {
+    return [];
+  }
 };
-const saveSubs = (subs) => fs.writeFileSync('db.json', JSON.stringify(subs, null, 2));
 
+const saveSubs = (subs) => {
+  fs.writeFileSync('db.json', JSON.stringify(subs, null, 2));
+};
+
+// ===============================
+// 📥 Endpoint para salvar inscrições
+// ===============================
 app.post('/subscribe', (req, res) => {
   const subs = getSubs();
   subs.push(req.body);
   saveSubs(subs);
-  res.status(201).json({ message: 'Inscrito!' });
+  res.status(201).json({ message: 'Inscrito com sucesso!' });
 });
 
+// ===============================
+// 📤 Endpoint para ENVIAR notificações
+// ===============================
 app.post('/send', async (req, res) => {
+  const { title, message, icon, url } = req.body;
   const subs = getSubs();
+
   const payload = JSON.stringify({
-    title: req.body.title,
-    body: req.body.body,
-    icon: req.body.icon,
-    url: req.body.url
+    title: title || "📢 Nova Notificação!",
+    message: message || "Você recebeu uma nova mensagem!",
+    icon: icon || "https://vip-w1-voy-we-91.com.br/sinais22/logo2voy.png",
+    url: url || "https://vip-w1-voy-we-91.com.br/sinais22/"
   });
 
-  await Promise.allSettled(subs.map(s => webpush.sendNotification(s, payload)));
-  res.json({ sent: subs.length });
+  const results = [];
+  for (const sub of subs) {
+    try {
+      await webpush.sendNotification(sub, payload);
+      results.push({ success: true });
+    } catch (err) {
+      results.push({ success: false, error: err.message });
+    }
+  }
+
+  res.json({ sent: results.filter(r => r.success).length, total: subs.length });
 });
 
-app.listen(10000, () => console.log('Servidor ativo na porta 10000'));
-
+// ===============================
+// 🚀 Inicia servidor
+// ===============================
+const PORT = process.env.PORT || 10000;
+app.listen(PORT, () => console.log(`Servidor ativo na porta ${PORT}`));
