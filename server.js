@@ -18,7 +18,7 @@ const vapidKeys = {
 };
 
 webpush.setVapidDetails(
-  'mailto:seuemail@exemplo.com',
+  'mailto:duducabralali@gmail.com',
   vapidKeys.publicKey,
   vapidKeys.privateKey
 );
@@ -80,3 +80,4 @@ app.post('/send', async (req, res) => {
 // ===============================
 const PORT = process.env.PORT || 10000;
 app.listen(PORT, () => console.log(`Servidor ativo na porta ${PORT}`));
+
