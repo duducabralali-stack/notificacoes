@@ -1,6 +1,10 @@
 // ===============================
 // 🚀 SERVIDOR DE NOTIFICAÇÕES W1
 // ===============================
+// Cria o arquivo db.json se não existir
+if (!fs.existsSync('./db.json')) {
+  fs.writeFileSync('./db.json', '[]');
+}
 
 const express = require('express');
 const bodyParser = require('body-parser');
@@ -122,3 +126,4 @@ app.listen(PORT, () => {
   console.log('🔥 Servidor de Notificações W1 ativo!');
   console.log(`🌐 Rodando automaticamente na porta: ${PORT}`);
 });
+
