@@ -13,8 +13,8 @@ app.use(express.static('public'));
 // 🔐 CHAVES VAPID
 // ===============================
 const vapidKeys = {
-  publicKey: 'BIrg7lacz4LQXJlCh9jIKOmwsPwcbIXbKI9eWrFidezQEnSOMTE9jxpL-cE43dpLTFjP1wMXDJUDxCjy95ZzpNA',
-  privateKey: 'LsHEzQxFlidjqWFaaq8h_gIeUZ2oK4EXV8uW6m3SgQ0'
+  publicKey: 'BJmEhCifBojagCPIMcwHKxd9R8jU-PXQalMEu5YNRFZP8qm6ZyzvulNzf1pZl_EaBZcKFdQ3gWN4vP7kzF4mUng',
+  privateKey: 'tiTgalG1uLPq7cU2rMMUXYuIV8crMKuIhC5ixntnQW0'
 };
 
 webpush.setVapidDetails('mailto:duducabralali@gmail.com', vapidKeys.publicKey, vapidKeys.privateKey);
@@ -91,3 +91,4 @@ app.listen(PORT, () => {
   console.log('🔥 Servidor de Notificações W1 ativo!');
   console.log(`🌐 Rodando automaticamente na porta: ${PORT}`);
 });
+
