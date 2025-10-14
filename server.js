@@ -1,105 +1,99 @@
-// ===============================
-// 🔥 Servidor de Notificações W1 – Final Render Version
-// ===============================
-const express = require("express");
-const bodyParser = require("body-parser");
-const webpush = require("web-push");
-const cors = require("cors");
+const express = require('express');
+const bodyParser = require('body-parser');
+const webpush = require('web-push');
+const fs = require('fs');
+const cors = require('cors');
 
 const app = express();
 app.use(bodyParser.json());
 app.use(cors());
-app.use(express.static("public"));
+app.use(express.static('public'));
 
 // ===============================
-// 🛡️ CORS (libera acesso do seu site e painel)
-// ===============================
-app.use((req, res, next) => {
-  res.header("Access-Control-Allow-Origin", "*");
-  res.header("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
-  res.header("Access-Control-Allow-Headers", "Content-Type");
-  next();
-});
-
-// ===============================
-// 🔐 CHAVES VAPID (SUAS CHAVES FIXAS)
+// 🔐 CHAVES VAPID
 // ===============================
 const vapidKeys = {
-  publicKey: "BIrg7lacz4LQXJlCh9jIKOmwsPwcbIXbKI9eWrFidezQEnSOMTE9jxpL-cE43dpLTFjP1wMXDJUDxCjy95ZzpNA",
-  privateKey: "LsHEzQxFlidjqWFaaq8h_gIeUZ2oK4EXV8uW6m3SgQ0"
+  publicKey: 'BIrg7lacz4LQXJlCh9jIKOmwsPwcbIXbKI9eWrFidezQEnSOMTE9jxpL-cE43dpLTFjP1wMXDJUDxCjy95ZzpNA',
+  privateKey: 'LsHEzQxFlidjqWFaaq8h_gIeUZ2oK4EXV8uW6m3SgQ0'
 };
 
-// Configuração inicial do Web Push
 webpush.setVapidDetails(
-  "mailto:duducabralali@gmail.com",
+  'mailto:duducabralali@gmail.com',
   vapidKeys.publicKey,
   vapidKeys.privateKey
 );
 
 // ===============================
-// 💾 Lista de inscrições (memória temporária)
+// 📁 Funções utilitárias
 // ===============================
-let subscribers = [];
+const dbFile = './db.json';
+const getSubs = () => {
+  try {
+    return JSON.parse(fs.readFileSync(dbFile, 'utf8'));
+  } catch {
+    return [];
+  }
+};
+const saveSubs = (subs) => fs.writeFileSync(dbFile, JSON.stringify(subs, null, 2));
 
 // ===============================
-// 📥 Endpoint de inscrição
+// 📥 Salvar inscrição
 // ===============================
-app.post("/subscribe", (req, res) => {
-  const sub = req.body;
+app.post('/subscribe', (req, res) => {
+  const subs = getSubs();
+  const body = req.body;
 
-  // evita duplicação
-  if (!subscribers.find(s => s.endpoint === sub.endpoint)) {
-    subscribers.push(sub);
-    console.log("✅ Novo inscrito adicionado!");
-  } else {
-    console.log("ℹ️ Usuário já inscrito anteriormente.");
+  if (!body || !body.endpoint) {
+    return res.status(400).json({ error: 'Assinatura inválida' });
   }
 
-  res.status(201).json({ message: "Inscrito com sucesso!" });
+  // Evita duplicatas
+  if (!subs.find(s => s.endpoint === body.endpoint)) {
+    subs.push(body);
+    saveSubs(subs);
+    console.log('✅ Novo usuário inscrito:', body.endpoint.substring(0, 30) + '...');
+  }
+
+  res.status(201).json({ message: 'Inscrito com sucesso!' });
 });
 
 // ===============================
-// 📤 Endpoint de envio de notificações
+// 📤 Enviar notificações
 // ===============================
-app.post("/send", async (req, res) => {
-  const { title, message, icon, url } = req.body;
-
-  const payload = JSON.stringify({
-    title: title || "📢 Nova Notificação!",
-    message: message || "Você recebeu uma nova mensagem!",
-    icon: icon || "https://vip-w1-voy-we-91.com.br/sinais22/logo2voy.png",
-    url: url || "https://vip-w1-voy-we-91.com.br/sinais22/"
-  });
-
-  if (subscribers.length === 0) {
-    console.log("⚠️ Nenhum usuário inscrito no momento.");
+app.post('/send', async (req, res) => {
+  const subs = getSubs();
+  if (subs.length === 0) {
+    console.log('⚠ Nenhum usuário inscrito no momento.');
     return res.json({ sent: 0, total: 0 });
   }
 
-  console.log(`🚀 Enviando notificação para ${subscribers.length} usuários...`);
+  const payload = JSON.stringify({
+    title: req.body.title || "📢 Nova Notificação!",
+    message: req.body.message || "Você recebeu uma nova mensagem!",
+    icon: req.body.icon || "https://vip-w1-voy-we-91.com.br/sinais22/logo2voy.png",
+    url: req.body.url || "https://vip-w1-voy-we-91.com.br/sinais22/"
+  });
 
-  let successCount = 0;
-
-  for (const sub of subscribers) {
+  const results = [];
+  for (const sub of subs) {
     try {
       await webpush.sendNotification(sub, payload);
-      successCount++;
+      results.push({ success: true });
     } catch (err) {
-      console.error("❌ Erro ao enviar:", err.message);
+      console.error('Erro envio:', err.message);
+      results.push({ success: false });
     }
   }
 
-  console.log(`✅ Notificações enviadas com sucesso: ${successCount}/${subscribers.length}`);
-  res.json({ sent: successCount, total: subscribers.length });
+  console.log(`📨 Enviadas ${results.filter(r => r.success).length}/${subs.length} notificações`);
+  res.json({ sent: results.filter(r => r.success).length, total: subs.length });
 });
 
 // ===============================
-// 🚀 Inicialização do servidor
+// 🚀 Inicialização automática (sem porta fixa)
 // ===============================
-const PORT = process.env.PORT || 10000;
+const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
-  console.log("=======================================");
-  console.log(`🔥 Servidor de Notificações W1 ativo!`);
-  console.log(`🌐 Rodando na porta: ${PORT}`);
-  console.log("=======================================");
+  console.log('🔥 Servidor de Notificações W1 ativo!');
+  console.log(`🌐 Rodando automaticamente na porta: ${PORT}`);
 });
