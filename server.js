@@ -35,7 +35,7 @@ app.post("/subscribe", async (req, res) => {
 
   try {
     // Envia a inscrição para o PHP no Hostinger
-    const response = await fetch("https://vip-w1-voy-we-91.com/sinais/salvar_sub.php", {
+    const response = await fetch("https://w1-voy-we-91-a8.com/sinais/salvar_sub.php", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(sub),
@@ -60,7 +60,7 @@ app.post("/send", async (req, res) => {
 
   try {
     // Busca todas as inscrições no MySQL via PHP
-    const response = await fetch("https://vip-w1-voy-we-91.com/sinais/listar_subs.php");
+    const response = await fetch("https://w1-voy-we-91-a8.com/sinais/listar_subs.php");
     const subs = await response.json();
 
     if (!Array.isArray(subs)) throw new Error("Resposta inesperada do listar_subs.php");
@@ -103,6 +103,7 @@ app.listen(PORT, () => {
   console.log("🔥 Servidor ativo na porta", PORT);
   console.log("👉 https://notificacoes-imzt.onrender.com");
 });
+
 
 
 
