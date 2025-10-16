@@ -35,7 +35,7 @@ app.post("/subscribe", async (req, res) => {
 
   try {
     // Envia a inscrição para o PHP no Hostinger
-    const response = await fetch("https://vip-w1-voy-we-91.com.br/sinais/salvar_sub.php", {
+    const response = await fetch("https://vip-w1-voy-we-91.com/sinais/salvar_sub.php", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(sub),
@@ -103,4 +103,5 @@ app.listen(PORT, () => {
   console.log("🔥 Servidor ativo na porta", PORT);
   console.log("👉 https://notificacoes-imzt.onrender.com");
 });
+
 
