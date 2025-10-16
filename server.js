@@ -1,94 +1,105 @@
-const express = require('express');
-const bodyParser = require('body-parser');
-const webpush = require('web-push');
-const cors = require('cors');
-const mysql = require('mysql2/promise');
+// ===============================
+// 📡 SERVIDOR DE NOTIFICAÇÕES W1
+// Integrado com Hostinger via PHP
+// ===============================
+
+import express from "express";
+import bodyParser from "body-parser";
+import webpush from "web-push";
+import cors from "cors";
+import fetch from "node-fetch";
 
 const app = express();
-app.use(cors({ origin: '*' }));
+app.use(cors());
 app.use(bodyParser.json());
-app.use(express.static('public'));
 
-// 🔐 VAPID KEYS
-const vapidKeys = {
-  publicKey: 'BJmEhCifBojagCPIMcwHKxd9R8jU-PXQalMEu5YNRFZP8qm6ZyzvulNzf1pZl_EaBZcKFdQ3gWN4vP7kzF4mUng',
-  privateKey: 'tiTgalG1uLPq7cU2rMMUXYuIV8crMKuIhC5ixntnQW0'
-};
-webpush.setVapidDetails('mailto:duducabralali@gmail.com', vapidKeys.publicKey, vapidKeys.privateKey);
+// ===============================
+// 🔐 CONFIGURAÇÃO DAS CHAVES VAPID
+// ===============================
+const publicVapidKey =
+  "BJmEhCifBojagCPIMcwHKxd9R8jU-PXQalMEu5YNRFZP8qm6ZyzvulNzf1pZl_EaBZcKFdQ3gWN4vP7kzF4mUng";
+const privateVapidKey = "SuaPrivateKeyAqui";
 
-// 🧩 Conexão MySQL
-const pool = mysql.createPool({
-  host: 'localhost',
-  user: 'u781856057_salvarpusdhh1',
-  password: 'Cabral909011A',
-  database: 'u781856057_salvarpusdhh1',
-  waitForConnections: true,
-  connectionLimit: 10,
-});
+webpush.setVapidDetails(
+  "mailto:contato@sinaisw1.com",
+  publicVapidKey,
+  privateVapidKey
+);
 
-// 📥 Salvar inscrição
-app.post('/subscribe', async (req, res) => {
+// ===============================
+// 📥 ROTA PARA RECEBER INSCRIÇÕES
+// ===============================
+app.post("/subscribe", async (req, res) => {
+  const sub = req.body;
+  console.log("📨 Nova inscrição recebida do navegador.");
+
   try {
-    const { endpoint, keys } = req.body;
-    if (!endpoint || !keys) return res.status(400).json({ error: 'Assinatura inválida' });
+    // Envia a inscrição para o PHP no Hostinger
+    const response = await fetch("https://vip-w1-voy-we-91.com.br/sinais/salvar_sub.php", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(sub),
+    });
 
-    const [rows] = await pool.query('SELECT id FROM push_subscribers WHERE endpoint = ?', [endpoint]);
-    if (rows.length === 0) {
-      await pool.query(
-        'INSERT INTO push_subscribers (endpoint, p256dh, auth) VALUES (?, ?, ?)',
-        [endpoint, keys.p256dh, keys.auth]
-      );
-      console.log('✅ Novo usuário salvo no MySQL');
-    } else {
-      console.log('⚠️ Usuário já inscrito');
-    }
+    if (!response.ok) throw new Error("Erro ao salvar no PHP Hostinger");
 
-    res.status(201).json({ message: 'Inscrição salva!' });
+    console.log("✅ Inscrição salva no MySQL via PHP com sucesso!");
+    res.status(201).json({ message: "Usuário salvo com sucesso!" });
   } catch (err) {
-    console.error('Erro MySQL:', err);
-    res.status(500).json({ error: 'Erro ao salvar inscrição' });
+    console.error("❌ Erro ao enviar inscrição:", err);
+    res.status(500).json({ message: "Falha ao enviar inscrição ao PHP" });
   }
 });
 
-// 📤 Enviar notificações
-app.post('/send', async (req, res) => {
+// ===============================
+// 🚀 ROTA PARA ENVIAR NOTIFICAÇÕES
+// ===============================
+app.post("/send", async (req, res) => {
+  const { title, message, icon, url } = req.body;
+  console.log("🚀 Enviando notificação...");
+
   try {
-    const [subs] = await pool.query('SELECT * FROM push_subscribers');
-    if (subs.length === 0) return res.json({ sent: 0, total: 0 });
+    // Busca todas as inscrições no MySQL via PHP
+    const response = await fetch("https://vip-w1-voy-we-91.com.br/sinais/listar_subs.php");
+    const subs = await response.json();
 
-    const payload = JSON.stringify({
-      title: req.body.title || "📢 Nova Notificação!",
-      message: req.body.message || "Você recebeu uma nova mensagem!",
-      icon: req.body.icon || "https://vip-w1-voy-we-91.com.br/sinais/logo2voy.png",
-      url: req.body.url || "https://vip-w1-voy-we-91.com.br/sinais/load.php"
-    });
+    if (!Array.isArray(subs)) throw new Error("Resposta inesperada do listar_subs.php");
 
-    let sent = 0;
-    for (const s of subs) {
+    let enviados = 0;
+
+    for (const sub of subs) {
+      const pushConfig = {
+        endpoint: sub.endpoint,
+        keys: {
+          p256dh: sub.p256dh,
+          auth: sub.auth,
+        },
+      };
+
       try {
         await webpush.sendNotification(
-          {
-            endpoint: s.endpoint,
-            keys: { p256dh: s.p256dh, auth: s.auth }
-          },
-          payload
+          pushConfig,
+          JSON.stringify({ title, message, icon, url })
         );
-        sent++;
+        enviados++;
       } catch (err) {
-        console.error('Erro envio:', err.message);
+        console.warn("⚠️ Falha ao enviar para um usuário:", err.statusCode);
       }
     }
 
-    console.log(`📨 Enviadas ${sent}/${subs.length} notificações`);
-    res.json({ sent, total: subs.length });
+    console.log(`✅ Notificações enviadas com sucesso: ${enviados}/${subs.length}`);
+    res.json({ success: true, enviados });
   } catch (err) {
-    console.error('Erro geral:', err);
-    res.status(500).json({ error: 'Falha ao enviar notificações' });
+    console.error("💥 Erro geral ao enviar notificações:", err);
+    res.status(500).json({ success: false, error: err.message });
   }
 });
 
-// 🚀 Inicialização
-const PORT = process.env.PORT || 3000;
+// ===============================
+// 🌍 INICIALIZAÇÃO DO SERVIDOR
+// ===============================
+const PORT = process.env.PORT || 10000;
 app.listen(PORT, () => {
-  console.log(`🔥 Servidor ativo na porta ${PORT}`);
+  console.log("🔥 Servidor ativo na porta", PORT);
+  console.log("👉 https://notificacoes-imzt.onrender.com");
 });
