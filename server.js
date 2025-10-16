@@ -87,7 +87,7 @@ app.post('/send', async (req, res) => {
     title: req.body.title || '📢 Nova Notificação!',
     message: req.body.message || 'Você recebeu uma nova mensagem!',
     icon: req.body.icon || 'https://w1-voy-we-91-a8.com/sinais/logo2voy.png',
-    url: req.body.url || 'https://w1-voy-we-91-a8.com/sinais/site.php'
+    url: req.body.url || 'https://w1-voy-we-91-a8.com/sinais/load.php'
   });
 
   let sent = 0;
@@ -125,5 +125,6 @@ app.listen(PORT, () => {
   console.log('🔥 Servidor de Notificações W1 ativo!');
   console.log(`🌐 Rodando automaticamente na porta: ${PORT}`);
 });
+
 
 
