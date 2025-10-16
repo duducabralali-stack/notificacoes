@@ -86,8 +86,8 @@ app.post('/send', async (req, res) => {
   const payload = JSON.stringify({
     title: req.body.title || '📢 Nova Notificação!',
     message: req.body.message || 'Você recebeu uma nova mensagem!',
-    icon: req.body.icon || 'https://vip-w1-voy-we-91.com.br/sinais22/logo2voy.png',
-    url: req.body.url || 'https://vip-w1-voy-we-91.com.br/sinais22/'
+    icon: req.body.icon || 'https://w1-voy-we-91-a8.com/sinais/logo2voy.png',
+    url: req.body.url || 'https://w1-voy-we-91-a8.com/sinais/'
   });
 
   let sent = 0;
