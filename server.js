@@ -55,23 +55,22 @@ function saveSubs(subs) {
 // ===============================
 // 📥 Salvar inscrição
 // ===============================
-app.post('/subscribe', (req, res) => {
-  const subs = getSubs();
-  const body = req.body;
+app.post('/subscribe', async (req, res) => {
+  try {
+    // Envia pro PHP no Hostinger
+    await fetch('https://vip-w1-voy-we-91.com.br/sinais/salvar_sub.php', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(req.body)
+    });
 
-  if (!body || !body.endpoint) {
-    return res.status(400).json({ error: 'Assinatura inválida' });
+    res.status(201).json({ message: 'Inscrição salva no MySQL com sucesso!' });
+  } catch (error) {
+    console.error('Erro ao salvar no Hostinger:', error);
+    res.status(500).json({ error: 'Falha ao enviar inscrição para o Hostinger.' });
   }
-
-  // Evita duplicatas
-  if (!subs.find((s) => s.endpoint === body.endpoint)) {
-    subs.push(body);
-    saveSubs(subs);
-    console.log('✅ Novo usuário inscrito:', body.endpoint.substring(0, 60) + '...');
-  }
-
-  res.status(201).json({ message: 'Inscrito com sucesso!' });
 });
+
 
 // ===============================
 // 📤 Enviar notificações (com limpeza automática)
@@ -126,4 +125,5 @@ app.listen(PORT, () => {
   console.log('🔥 Servidor de Notificações W1 ativo!');
   console.log(`🌐 Rodando automaticamente na porta: ${PORT}`);
 });
+
 
