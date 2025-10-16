@@ -17,8 +17,8 @@ app.use(bodyParser.json());
 // 🔐 CONFIGURAÇÃO DAS CHAVES VAPID
 // ===============================
 const publicVapidKey =
-  "BJmEhCifBojagCPIMcwHKxd9R8jU-PXQalMEu5YNRFZP8qm6ZyzvulNzf1pZl_EaBZcKFdQ3gWN4vP7kzF4mUng";
-const privateVapidKey = "SuaPrivateKeyAqui";
+  "BNPa0ciQJ89H6qF1Vegl3IElXMkig-q66rE7PXZP40SZ35Vsdfr0uhVoLro-JXHeNV7cmHiVbxOqlFGhfs8EFu0";
+const privateVapidKey = "VoeGpa_Fugwc88JD8ZCd3qoJjIEYzX2zwWdtlutN_6k";
 
 webpush.setVapidDetails(
   "mailto:contato@sinaisw1.com",
@@ -103,3 +103,4 @@ app.listen(PORT, () => {
   console.log("🔥 Servidor ativo na porta", PORT);
   console.log("👉 https://notificacoes-imzt.onrender.com");
 });
+
