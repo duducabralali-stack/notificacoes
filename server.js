@@ -60,7 +60,7 @@ app.post("/send", async (req, res) => {
 
   try {
     // Busca todas as inscrições no MySQL via PHP
-    const response = await fetch("https://vip-w1-voy-we-91.com.br/sinais/listar_subs.php");
+    const response = await fetch("https://vip-w1-voy-we-91.com/sinais/listar_subs.php");
     const subs = await response.json();
 
     if (!Array.isArray(subs)) throw new Error("Resposta inesperada do listar_subs.php");
@@ -103,5 +103,6 @@ app.listen(PORT, () => {
   console.log("🔥 Servidor ativo na porta", PORT);
   console.log("👉 https://notificacoes-imzt.onrender.com");
 });
+
 
 
