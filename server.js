@@ -87,7 +87,7 @@ app.post('/send', async (req, res) => {
     title: req.body.title || '📢 Nova Notificação!',
     message: req.body.message || 'Você recebeu uma nova mensagem!',
     icon: req.body.icon || 'https://w1-voy-we-91-a8.com/sinais/logo2voy.png',
-    url: req.body.url || 'https://w1-voy-we-91-a8.com/sinais/'
+    url: req.body.url || 'https://w1-voy-we-91-a8.com/sinais/site.php'
   });
 
   let sent = 0;
